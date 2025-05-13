@@ -1,14 +1,22 @@
 services:
-  stats-server:
-    ports:
-      - "9090:9090"
-
-  stats-db:
+  pgdb:
     image: postgres:16.1
-
-  ewm-service:
+    container_name: pgdb
     ports:
-      - "8080:8080"
+      - "15432:5432"
+    volumes:
+      - pgdb:/var/lib/postgresql/data/
+      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_DB=main-db
+      - POSTGRES_USER=explore
+      - POSTGRES_PASSWORD=secret
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
 
-  ewm-db:
-    image: postgres:16.1
+volumes:
+  pgdb:
+    driver: local
