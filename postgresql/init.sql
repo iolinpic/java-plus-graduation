@@ -1,0 +1,1 @@
+CREATE DATABASE "stats-db" OWNER explore ENCODING 'UTF8';

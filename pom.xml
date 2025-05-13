@@ -17,6 +17,11 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
+	<modules>
+		<module>main-service</module>
+		<module>stat</module>
+	</modules>
+
 	<properties>
 		<java.version>21</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -81,6 +86,9 @@
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>0.8.12</version>
 					<configuration>
+						<excludes>
+							<exclude>**/Q*</exclude>
+						</excludes>
 						<output>file</output>
 					</configuration>
 					<executions>
