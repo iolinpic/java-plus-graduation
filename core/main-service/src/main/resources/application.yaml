@@ -1,20 +1,20 @@
-server:
-  port: 8080
-stats-server:
-  uri: "${STAT_SERVER_URI:http://localhost:9090}"
 spring:
-  jpa:
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        hibernate:
-          format_sql: true
-  sql:
-    init:
-      mode: always
-  datasource:
-    url: jdbc:postgresql://localhost:15432/main-db
-    driver-class-name: "org.postgresql.Driver"
-    username: "explore"
-    password: "secret"
+  application:
+    name: main-service
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      fail-fast: true
+      retry:
+        useRandomPolicy: true
+        max-interval: 6000
+      discovery:
+        enabled: true
+        serviceId: config-server
+
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
