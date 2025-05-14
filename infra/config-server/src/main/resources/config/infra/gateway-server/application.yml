@@ -10,9 +10,9 @@ spring:
         locator:
           enabled: true
       routes:
-        - id: shopping_cart_service_route
-          uri: lb://shopping-cart
+        - id: main_service_route
+          uri: lb://main-service
           predicates:
-            - Path=/shopping-cart/**
-          filters:
-            - PrefixPath=/api/v1
+            - Path=/**
+#          filters:
+#            - PrefixPath=/api/v1
