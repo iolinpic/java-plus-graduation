@@ -46,7 +46,7 @@ public class StatClient {
 
 
     private ServiceInstance getInstance() {
-        String serviceId = "stat-server";
+        String serviceId = "stats-server";
         try {
             return discoveryClient
                     .getInstances(serviceId)
