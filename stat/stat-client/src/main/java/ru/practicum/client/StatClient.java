@@ -2,7 +2,6 @@ package ru.practicum.client;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.ParameterizedTypeReference;
@@ -59,11 +58,11 @@ public class StatClient {
             );
         }
     }
+
     private URI makeUri(String path) {
         ServiceInstance instance = retryTemplate.execute(cxt -> getInstance());
         return URI.create("http://" + instance.getHost() + ":" + instance.getPort() + path);
     }
-
 
 
     public void saveHit(EndpointHitDto hitDto) {
