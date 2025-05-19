@@ -16,7 +16,7 @@ public final class EventPredicates {
     }
 
     private static BooleanExpression initiatorIdIn(List<Long> uIds) {
-        return QEvent.event.initiator.id.in(uIds);
+        return QEvent.event.initiatorId.in(uIds);
     }
 
     private static BooleanExpression statesIn(List<EventState> states) {

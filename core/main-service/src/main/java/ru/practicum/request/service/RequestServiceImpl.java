@@ -1,18 +1,20 @@
 package ru.practicum.request.service;
 
+import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.common.exception.InitiatorRequestException;
-import ru.practicum.common.exception.NotFoundException;
-import ru.practicum.common.exception.NotPublishEventException;
-import ru.practicum.common.exception.OperationUnnecessaryException;
-import ru.practicum.common.exception.ParticipantLimitException;
-import ru.practicum.common.exception.RepeatableUserRequestException;
-import ru.practicum.common.exception.ValidationException;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.EventState;
 import ru.practicum.events.repository.EventRepository;
+import ru.practicum.exceptions.InitiatorRequestException;
+import ru.practicum.exceptions.NotFoundException;
+import ru.practicum.exceptions.NotPublishEventException;
+import ru.practicum.exceptions.OperationUnnecessaryException;
+import ru.practicum.exceptions.ParticipantLimitException;
+import ru.practicum.exceptions.RepeatableUserRequestException;
+import ru.practicum.exceptions.ValidationException;
+import ru.practicum.feign.users.UsersClient;
 import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.request.dto.ParticipationRequestDto;
@@ -20,7 +22,6 @@ import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.model.RequestStatus;
 import ru.practicum.request.repository.RequestRepository;
-import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,16 +31,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RequestServiceImpl implements RequestService {
 
-    private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final RequestRepository requestRepository;
-
+    private final UsersClient usersClient;
     private final RequestMapper requestMapper;
 
     @Override
     public List<ParticipationRequestDto> getUserRequests(Long userId, HttpServletRequest request) {
-        userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("User with id %s not found",
-                userId)));
+        findUserById(userId);
         return requestRepository.findByRequesterId(userId).stream()
                 .map(requestMapper::requestToParticipationRequestDto)
                 .toList();
@@ -47,7 +46,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ParticipationRequestDto addParticipationRequest(Long userId, Long eventId) {
-        if (eventRepository.findByIdAndInitiator_Id(eventId, userId).isPresent()) {
+        if (eventRepository.findByIdAndInitiatorId(eventId, userId).isPresent()) {
             throw new InitiatorRequestException(String.format("User with id %s is initiator for event with id %s",
                     userId, eventId));
         }
@@ -61,7 +60,7 @@ public class RequestServiceImpl implements RequestService {
             throw new NotPublishEventException(String.format("Event with id %s is not published", eventId));
         }
         Request request = new Request();
-        request.setRequester(userRepository.findById(userId).get());
+        request.setRequesterId(userId);
         request.setEvent(event);
 
         Long confirmedRequestsAmount = requestRepository.countRequestsByEventAndStatus(event, RequestStatus.CONFIRMED);
@@ -99,7 +98,7 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public List<ParticipationRequestDto> getEventParticipants(Long userId, Long eventId, HttpServletRequest request) {
         List<Event> userEvents = eventRepository.findAllByInitiatorId(userId);
-        Event event = userEvents.stream().filter(e -> e.getInitiator().getId().equals(userId)).findFirst()
+        Event event = userEvents.stream().filter(e -> e.getInitiatorId().equals(userId)).findFirst()
                 .orElseThrow(() -> new ValidationException(String.format("User with id %s is not initiator of event with id %s",
                         userId, eventId)));
         return requestRepository.findByEventId(event.getId())
@@ -112,7 +111,7 @@ public class RequestServiceImpl implements RequestService {
     public EventRequestStatusUpdateResult changeRequestStatus(Long userId, Long eventId,
                                                               EventRequestStatusUpdateRequest eventStatusUpdate,
                                                               HttpServletRequest request) {
-        Event event = eventRepository.findByIdAndInitiator_Id(eventId, userId)
+        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id %s not found " +
                         "or unavailable for user with id %s", eventId, userId)));
         int participantLimit = event.getParticipantLimit();
@@ -163,6 +162,14 @@ public class RequestServiceImpl implements RequestService {
         result.setConfirmedRequests(confirmedRequests);
         result.setRejectedRequests(rejectedRequests);
         return result;
+    }
+
+    private void findUserById(Long userId) {
+        try {
+            usersClient.getUserById(userId);
+        } catch (FeignException ex){
+            throw new NotFoundException(String.format("User with id %s not found", userId));
+        }
     }
 
 }

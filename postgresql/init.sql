@@ -1,1 +1,2 @@
 CREATE DATABASE "stats-db" OWNER explore ENCODING 'UTF8';
+CREATE DATABASE "users-db" OWNER explore ENCODING 'UTF8';

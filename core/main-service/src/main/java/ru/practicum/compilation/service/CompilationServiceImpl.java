@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.common.exception.NotFoundException;
 import ru.practicum.compilation.dto.CompilationDto;
 import ru.practicum.compilation.dto.NewCompilationDto;
 import ru.practicum.compilation.dto.UpdateCompilationRequest;
@@ -12,6 +11,7 @@ import ru.practicum.compilation.mapper.CompilationMapperImpl;
 import ru.practicum.compilation.model.Compilation;
 import ru.practicum.compilation.repository.CompilationRepository;
 import ru.practicum.events.repository.EventRepository;
+import ru.practicum.exceptions.NotFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;

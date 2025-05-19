@@ -1,6 +1,7 @@
 package ru.practicum.events.service;
 
 import com.querydsl.core.types.Predicate;
+import feign.FeignException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -13,9 +14,8 @@ import ru.practicum.comment.dto.CommentDto;
 import ru.practicum.comment.enums.CommentStatus;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.repository.CommentRepository;
-import ru.practicum.common.exception.NotFoundException;
-import ru.practicum.common.exception.OperationForbiddenException;
 import ru.practicum.dto.ViewStats;
+import ru.practicum.dto.user.UserDto;
 import ru.practicum.events.dto.AdminUpdateStateAction;
 import ru.practicum.events.dto.EntityParam;
 import ru.practicum.events.dto.EventAdminUpdateDto;
@@ -35,17 +35,20 @@ import ru.practicum.events.model.Location;
 import ru.practicum.events.predicates.EventPredicates;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.events.repository.LocationRepository;
+import ru.practicum.exceptions.NotFoundException;
+import ru.practicum.exceptions.OperationForbiddenException;
+import ru.practicum.feign.users.UsersClient;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.model.RequestStatus;
 import ru.practicum.request.repository.RequestRepository;
-import ru.practicum.user.model.User;
-import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,24 +57,27 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
     private final RequestRepository requestRepository;
     private final EventMapper eventMapper;
     private final LocationMapper locationMapper;
     private final StatClient statClient;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
+    private final UsersClient usersClient;
 
     @Override
     public List<EventDto> adminEventsSearch(SearchEventsParam param) {
         Pageable pageable = PageRequest.of(param.getFrom(), param.getSize());
         Predicate predicate = EventPredicates.adminFilter(param);
+        List<Event> events;
         if (predicate == null) {
-            return addMinimalDataToList(eventRepository.findAll(pageable).stream().map(eventMapper::toDto).toList());
+            events = eventRepository.findAll(pageable).toList();
         } else {
-            return addMinimalDataToList(eventRepository.findAll(predicate, pageable).stream().map(eventMapper::toDto).toList());
+            events = eventRepository.findAll(predicate, pageable).toList();
         }
+        return addMinimalDataToList(mapAndAddUsers(events));
     }
+
 
     @Override
     public EventDto adminEventUpdate(Long eventId, EventAdminUpdateDto eventUpdateDto) {
@@ -79,6 +85,7 @@ public class EventServiceImpl implements EventService {
         if (eventUpdateDto.getEventDate() != null && eventUpdateDto.getEventDate().isBefore(event.getCreatedOn().minusHours(1))) {
             throw new ValidationException("Event date cannot be before created date");
         }
+        UserDto user = findUserById(event.getInitiatorId());
 
         updateEventData(event, eventUpdateDto.getTitle(),
                 eventUpdateDto.getAnnotation(),
@@ -101,7 +108,7 @@ public class EventServiceImpl implements EventService {
             }
         }
         event = eventRepository.save(event);
-        return addAdvancedData(eventMapper.toDto(event));
+        return addAdvancedData(eventMapper.toDto(event, user));
     }
 
     @Override
@@ -128,17 +135,15 @@ public class EventServiceImpl implements EventService {
         if (params.getOnlyAvailable()) {
             filteredEvents = filteredEvents.stream().filter(this::isEventAvailable).toList();
         }
-        List<EventShortDto> eventDtos = addAdvancedDataToShortDtoList(filteredEvents
-                .stream()
-                .map(eventMapper::toEventShortDto)
-                .toList());
+        List<EventShortDto> eventDtos = addAdvancedDataToShortDtoList(mapShortAndAddUsers(filteredEvents));
 
         EventSort sort = params.getSort();
         if (sort != null) {
             switch (sort) {
                 case EVENT_DATE ->
-                        eventDtos.stream().sorted(Comparator.comparing(EventShortDto::getEventDate)).toList();
-                case VIEWS -> eventDtos.stream().sorted(Comparator.comparing(EventShortDto::getViews)).toList();
+                        eventDtos = eventDtos.stream().sorted(Comparator.comparing(EventShortDto::getEventDate)).toList();
+                case VIEWS ->
+                        eventDtos = eventDtos.stream().sorted(Comparator.comparing(EventShortDto::getViews)).toList();
             }
         }
         return eventDtos;
@@ -148,7 +153,8 @@ public class EventServiceImpl implements EventService {
     public EventDto getEvent(Long eventId) {
         Event event = eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id %s not found", eventId)));
-        return addAdvancedData(eventMapper.toDto(event));
+        UserDto user = findUserById(event.getInitiatorId());
+        return addAdvancedData(eventMapper.toDto(event, user));
     }
 
 
@@ -191,10 +197,8 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventDto> privateUserEvents(Long userId, int from, int size) {
         Pageable pageable = PageRequest.of(from, size);
-        List<EventDto> list = eventRepository.findAllByInitiator_Id(userId, pageable).stream()
-                .map(eventMapper::toDto)
-                .toList();
-        return addAdvancedDataToList(list);
+        List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
+        return addAdvancedDataToList(mapAndAddUsers(events));
     }
 
     @Override
@@ -204,9 +208,9 @@ public class EventServiceImpl implements EventService {
                     .format("Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value: %s",
                             eventCreateDto.getEventDate()));
         }
-        User initiator = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        UserDto user = findUserById(userId);
         Event event = eventMapper.fromDto(eventCreateDto);
-        event.setInitiator(initiator);
+        event.setInitiatorId(userId);
         Category category = categoryRepository.findById(eventCreateDto.getCategory())
                 .orElseThrow(() -> new NotFoundException("Category not found"));
         event.setCategory(category);
@@ -214,19 +218,20 @@ public class EventServiceImpl implements EventService {
         event.setCreatedOn(LocalDateTime.now());
         event.setState(EventState.PENDING);
         event = eventRepository.save(event);
-        return addAdvancedData(eventMapper.toDto(event));
+        return addAdvancedData(eventMapper.toDto(event, user));
     }
 
     @Override
     public EventDto privateGetUserEvent(Long userId, Long eventId) {
-        Event event = eventRepository.findByIdAndInitiator_Id(eventId, userId)
+        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id %s not found", eventId)));
-        return addAdvancedData(eventMapper.toDto(event));
+        UserDto user = findUserById(event.getInitiatorId());
+        return addAdvancedData(eventMapper.toDto(event, user));
     }
 
     @Override
     public EventDto privateUpdateUserEvent(Long userId, Long eventId, EventUpdateDto eventUpdateDto) {
-        Event event = eventRepository.findByIdAndInitiator_Id(eventId, userId)
+        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id %s not found", eventId)));
         if (event.getState().equals(EventState.PUBLISHED) || event.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
             throw new OperationForbiddenException("Only pending or canceled events can be changed");
@@ -249,7 +254,8 @@ public class EventServiceImpl implements EventService {
             }
         }
         event = eventRepository.save(event);
-        return addAdvancedData(eventMapper.toDto(event));
+        UserDto user = findUserById(event.getInitiatorId());
+        return addAdvancedData(eventMapper.toDto(event, user));
     }
 
     private EventDto addAdvancedData(EventDto eventDto) {
@@ -353,5 +359,33 @@ public class EventServiceImpl implements EventService {
                 .peek(dto -> dto.setViews(viewsMap.get(dto.getId())))
                 .peek(dto -> dto.setConfirmedRequests(confirmedMap.get(dto.getId())))
                 .toList();
+    }
+
+    private UserDto findUserById(Long userId) {
+        try {
+            return usersClient.getUserById(userId);
+        } catch (FeignException ex) {
+            throw new NotFoundException(String.format("User with id %s not found", userId));
+        }
+    }
+
+    private Map<Long, UserDto> loadUsers(List<Long> ids) {
+        try {
+            return usersClient.getUsersWithIds(ids).stream().collect(Collectors.toMap(UserDto::getId, user -> user));
+        } catch (FeignException e) {
+            throw new NotFoundException("Some users load error");
+        }
+    }
+
+    private List<EventDto> mapAndAddUsers(List<Event> events) {
+        List<Long> ids = events.stream().map(Event::getInitiatorId).toList();
+        Map<Long, UserDto> users = loadUsers(ids);
+        return events.stream().map(e -> eventMapper.toDto(e, users.get(e.getInitiatorId()))).toList();
+    }
+
+    private List<EventShortDto> mapShortAndAddUsers(List<Event> events) {
+        List<Long> ids = events.stream().map(Event::getInitiatorId).toList();
+        Map<Long, UserDto> users = loadUsers(ids);
+        return events.stream().map(e -> eventMapper.toEventShortDto(e, users.get(e.getInitiatorId()))).toList();
     }
 }

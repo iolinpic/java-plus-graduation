@@ -9,9 +9,9 @@ import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.mapper.CategoryMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
-import ru.practicum.common.exception.NotEmptyException;
-import ru.practicum.common.exception.NotFoundException;
 import ru.practicum.events.repository.EventRepository;
+import ru.practicum.exceptions.NotEmptyException;
+import ru.practicum.exceptions.NotFoundException;
 
 import java.util.List;
 

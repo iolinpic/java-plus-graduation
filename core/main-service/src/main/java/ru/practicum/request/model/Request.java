@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import ru.practicum.events.model.Event;
-import ru.practicum.user.model.User;
 
 import java.time.LocalDateTime;
 
@@ -36,9 +35,8 @@ public class Request {
     @JoinColumn(name = "event_id")
     private Event event;
 
-    @ManyToOne
-    @JoinColumn(name = "requester_id")
-    private User requester;
+    @Column(name = "requester_id")
+    private Long requesterId;
 
     @Column(name = "created_at")
     private LocalDateTime createdOn;
