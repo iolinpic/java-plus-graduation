@@ -1,7 +1,7 @@
 package ru.practicum.events.dto;
 
 import lombok.Data;
-import ru.practicum.category.dto.CategoryDto;
+import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.user.UserDto;
 
 @Data

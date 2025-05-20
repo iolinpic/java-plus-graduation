@@ -20,13 +20,11 @@ public class UsersClientController implements UsersClient {
 
     @Override
     public UserDto getUserById(Long id) throws FeignException {
-        log.info("Getting user by id: {}", id);
         return userService.getUser(id);
     }
 
     @Override
     public List<UserDto> getUsersWithIds(List<Long> ids) throws FeignException {
-        log.info("Getting users with ids: {}", ids);
         return userService.getUsersWithIds(ids);
     }
 }

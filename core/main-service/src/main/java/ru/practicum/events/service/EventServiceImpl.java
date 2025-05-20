@@ -7,14 +7,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.category.model.Category;
-import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.client.StatClient;
 import ru.practicum.comment.dto.CommentDto;
 import ru.practicum.comment.enums.CommentStatus;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.dto.ViewStats;
+import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.events.dto.AdminUpdateStateAction;
 import ru.practicum.events.dto.EntityParam;
@@ -37,6 +36,7 @@ import ru.practicum.events.repository.EventRepository;
 import ru.practicum.events.repository.LocationRepository;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.exceptions.OperationForbiddenException;
+import ru.practicum.feign.category.CategoryClient;
 import ru.practicum.feign.users.UsersClient;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.model.RequestStatus;
@@ -56,7 +56,6 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final LocationRepository locationRepository;
-    private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
     private final EventMapper eventMapper;
     private final LocationMapper locationMapper;
@@ -64,6 +63,7 @@ public class EventServiceImpl implements EventService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final UsersClient usersClient;
+    private final CategoryClient categoryClient;
 
     @Override
     public List<EventDto> adminEventsSearch(SearchEventsParam param) {
@@ -75,7 +75,7 @@ public class EventServiceImpl implements EventService {
         } else {
             events = eventRepository.findAll(predicate, pageable).toList();
         }
-        return addMinimalDataToList(mapAndAddUsers(events));
+        return addMinimalDataToList(mapAndAddUsersAndCategories(events));
     }
 
 
@@ -108,7 +108,8 @@ public class EventServiceImpl implements EventService {
             }
         }
         event = eventRepository.save(event);
-        return addAdvancedData(eventMapper.toDto(event, user));
+        CategoryDto categoryDto = findCategoryById(event.getCategoryId());
+        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
     }
 
     @Override
@@ -135,7 +136,7 @@ public class EventServiceImpl implements EventService {
         if (params.getOnlyAvailable()) {
             filteredEvents = filteredEvents.stream().filter(this::isEventAvailable).toList();
         }
-        List<EventShortDto> eventDtos = addAdvancedDataToShortDtoList(mapShortAndAddUsers(filteredEvents));
+        List<EventShortDto> eventDtos = addAdvancedDataToShortDtoList(mapShortAndAddUsersAndCategories(filteredEvents));
 
         EventSort sort = params.getSort();
         if (sort != null) {
@@ -154,7 +155,13 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id %s not found", eventId)));
         UserDto user = findUserById(event.getInitiatorId());
-        return addAdvancedData(eventMapper.toDto(event, user));
+        CategoryDto categoryDto = findCategoryById(event.getCategoryId());
+        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
+    }
+
+    @Override
+    public Boolean checkIfCategoryHasEvents(Long catId) {
+        return !eventRepository.findAllByCategoryId(catId).isEmpty();
     }
 
 
@@ -169,9 +176,8 @@ public class EventServiceImpl implements EventService {
             event.setDescription(description);
         }
         if (categoryId != null) {
-            Category category = categoryRepository.findById(categoryId)
-                    .orElseThrow(() -> new NotFoundException("Category not found"));
-            event.setCategory(category);
+            findCategoryById(categoryId);
+            event.setCategoryId(categoryId);
         }
         if (eventDate != null) {
             if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
@@ -198,7 +204,7 @@ public class EventServiceImpl implements EventService {
     public List<EventDto> privateUserEvents(Long userId, int from, int size) {
         Pageable pageable = PageRequest.of(from, size);
         List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
-        return addAdvancedDataToList(mapAndAddUsers(events));
+        return addAdvancedDataToList(mapAndAddUsersAndCategories(events));
     }
 
     @Override
@@ -211,14 +217,12 @@ public class EventServiceImpl implements EventService {
         UserDto user = findUserById(userId);
         Event event = eventMapper.fromDto(eventCreateDto);
         event.setInitiatorId(userId);
-        Category category = categoryRepository.findById(eventCreateDto.getCategory())
-                .orElseThrow(() -> new NotFoundException("Category not found"));
-        event.setCategory(category);
         locationRepository.save(event.getLocation());
         event.setCreatedOn(LocalDateTime.now());
         event.setState(EventState.PENDING);
         event = eventRepository.save(event);
-        return addAdvancedData(eventMapper.toDto(event, user));
+        CategoryDto categoryDto = findCategoryById(event.getCategoryId());
+        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
     }
 
     @Override
@@ -226,7 +230,8 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id %s not found", eventId)));
         UserDto user = findUserById(event.getInitiatorId());
-        return addAdvancedData(eventMapper.toDto(event, user));
+        CategoryDto categoryDto = findCategoryById(event.getCategoryId());
+        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
     }
 
     @Override
@@ -255,7 +260,8 @@ public class EventServiceImpl implements EventService {
         }
         event = eventRepository.save(event);
         UserDto user = findUserById(event.getInitiatorId());
-        return addAdvancedData(eventMapper.toDto(event, user));
+        CategoryDto categoryDto = findCategoryById(event.getCategoryId());
+        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
     }
 
     private EventDto addAdvancedData(EventDto eventDto) {
@@ -377,15 +383,39 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private List<EventDto> mapAndAddUsers(List<Event> events) {
+    private List<EventDto> mapAndAddUsersAndCategories(List<Event> events) {
         List<Long> ids = events.stream().map(Event::getInitiatorId).toList();
+        List<Long> categoryIds = events.stream().map(Event::getCategoryId).toList();
         Map<Long, UserDto> users = loadUsers(ids);
-        return events.stream().map(e -> eventMapper.toDto(e, users.get(e.getInitiatorId()))).toList();
+        Map<Long,CategoryDto> categories = loadCategories(categoryIds);
+        return events.stream().map(e ->
+                eventMapper.toDto(e, users.get(e.getInitiatorId()),
+                        categories.get(e.getCategoryId()))).toList();
     }
 
-    private List<EventShortDto> mapShortAndAddUsers(List<Event> events) {
+    private List<EventShortDto> mapShortAndAddUsersAndCategories(List<Event> events) {
         List<Long> ids = events.stream().map(Event::getInitiatorId).toList();
+        List<Long> categoryIds = events.stream().map(Event::getCategoryId).toList();
         Map<Long, UserDto> users = loadUsers(ids);
-        return events.stream().map(e -> eventMapper.toEventShortDto(e, users.get(e.getInitiatorId()))).toList();
+        Map<Long,CategoryDto> categories = loadCategories(categoryIds);
+        return events.stream().map(e ->
+                eventMapper.toEventShortDto(e, users.get(e.getInitiatorId()),categories.get(e.getCategoryId()))).toList();
+    }
+
+    private CategoryDto findCategoryById(Long categoryId) {
+        try {
+            return categoryClient.findById(categoryId);
+        } catch (FeignException ex) {
+            throw new NotFoundException(String.format("Category with id %s not found", categoryId));
+        }
+    }
+
+    private Map<Long, CategoryDto> loadCategories(List<Long> ids) {
+        try {
+            return categoryClient.findByIds(ids).stream()
+                    .collect(Collectors.toMap(CategoryDto::getId, cat -> cat));
+        } catch (FeignException e) {
+            throw new NotFoundException("Some users load error");
+        }
     }
 }

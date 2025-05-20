@@ -1,6 +1,6 @@
 package ru.practicum.category.service;
 
-import ru.practicum.category.dto.CategoryDto;
+import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.category.dto.NewCategoryDto;
 
 import java.util.List;
@@ -15,4 +15,6 @@ public interface CategoryService {
     List<CategoryDto> getCategories(int from, int size);
 
     CategoryDto getCategoryById(Long catId);
+
+    List<CategoryDto> getCategoriesByIds(List<Long> ids);
 }

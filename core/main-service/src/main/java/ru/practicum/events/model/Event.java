@@ -15,7 +15,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import ru.practicum.category.model.Category;
 
 import java.time.LocalDateTime;
 
@@ -46,9 +45,8 @@ public class Event {
     private int participantLimit;
 
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @Column(name = "category_id")
+    private Long categoryId;
 
     @ManyToOne
     @JoinColumn(name = "location_id")

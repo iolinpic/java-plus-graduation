@@ -11,7 +11,7 @@ import java.util.List;
 @FeignClient(name="user-service", path = "/api/v1/user")
 public interface UsersClient {
     @GetMapping
-    UserDto getUserById(@RequestParam Long id) throws FeignException;;
+    UserDto getUserById(@RequestParam Long id) throws FeignException;
     @GetMapping("/list")
     List<UserDto> getUsersWithIds(@RequestParam List<Long> ids) throws FeignException;;
 }

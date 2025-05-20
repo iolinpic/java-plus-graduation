@@ -5,11 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.compilation.dto.CompilationDto;
 import ru.practicum.compilation.model.Compilation;
+import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.model.Event;
 import ru.practicum.exceptions.NotFoundException;
+import ru.practicum.feign.category.CategoryClient;
 import ru.practicum.feign.users.UsersClient;
 
 import java.util.List;
@@ -23,13 +25,14 @@ import java.util.stream.Collectors;
 public final class CompilationMapperImpl {
     private final EventMapper eventMapper;
     private final UsersClient usersClient;
+    private final CategoryClient categoryClient;
 
     public CompilationDto toDto(Compilation compilation) {
         CompilationDto dto = new CompilationDto();
         dto.setId(compilation.getId());
         dto.setPinned(compilation.isPinned());
         dto.setTitle(compilation.getTitle());
-        dto.setEvents(mapShortAndAddUsers(compilation.getEvents()));
+        dto.setEvents(mapShortAndAddUsersAndCategories(compilation.getEvents()));
         return dto;
     }
 
@@ -41,10 +44,24 @@ public final class CompilationMapperImpl {
         }
     }
 
-    private List<EventShortDto> mapShortAndAddUsers(Set<Event> events) {
+    private List<EventShortDto> mapShortAndAddUsersAndCategories(Set<Event> events) {
         List<Long> ids = events.stream().map(Event::getInitiatorId).toList();
+        List<Long> categoryIds = events.stream().map(Event::getInitiatorId).toList();
         Map<Long, UserDto> users = loadUsers(ids);
-        return events.stream().map(e -> eventMapper.toEventShortDto(e, users.get(e.getInitiatorId()))).toList();
+        Map<Long, CategoryDto> categories = loadCategories(categoryIds);
+        return events.stream().map(e ->
+                eventMapper.toEventShortDto(e, users.get(e.getInitiatorId()),categories.get(e.getCategoryId()))).toList();
+    }
+
+
+
+    private Map<Long, CategoryDto> loadCategories(List<Long> ids) {
+        try {
+            return categoryClient.findByIds(ids).stream()
+                    .collect(Collectors.toMap(CategoryDto::getId, cat -> cat));
+        } catch (FeignException e) {
+            throw new NotFoundException("Some users load error");
+        }
     }
 
 }

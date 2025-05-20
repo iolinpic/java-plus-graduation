@@ -28,4 +28,5 @@ public interface EventService {
 
     EventDto getEvent(Long eventId);
 
+    Boolean checkIfCategoryHasEvents(Long catId);
 }

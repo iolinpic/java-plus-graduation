@@ -28,7 +28,7 @@ public final class EventPredicates {
     }
 
     private static BooleanExpression categoriesIn(List<Long> cIds) {
-        return QEvent.event.category.id.in(cIds);
+        return QEvent.event.categoryId.in(cIds);
     }
 
     private static BooleanExpression eventDateGoe(LocalDateTime from) {

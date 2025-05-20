@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>user-service</artifactId>
+    <artifactId>category-service</artifactId>
     <dependencies>
         <!--  Cloud deps       -->
         <dependency>
@@ -102,4 +102,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
