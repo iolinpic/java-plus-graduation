@@ -54,8 +54,8 @@ public class CommentServiceImpl implements CommentService {
         return commentMapper.toDto(comment);
     }
 
-    private Boolean findByRequesterIdAndEventIdAndStatus(Long userId,Long eventId,RequestStatus status){
-        try{
+    private Boolean findByRequesterIdAndEventIdAndStatus(Long userId, Long eventId, RequestStatus status) {
+        try {
             return requestClient.findByRequesterIdAndEventIdAndStatus(userId, eventId, status);
         } catch (FeignException e) {
             throw new NotFoundException(e.getMessage());
@@ -113,6 +113,7 @@ public class CommentServiceImpl implements CommentService {
                 .map(commentMapper::toDto)
                 .toList();
     }
+
     private UserDto findUserById(Long userId) {
         try {
             return usersClient.getUserById(userId);

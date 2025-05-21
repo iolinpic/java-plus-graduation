@@ -8,7 +8,7 @@ import ru.practicum.dto.request.RequestStatus;
 import java.util.List;
 
 @Component
-public class RequestClientFallback implements RequestClient{
+public class RequestClientFallback implements RequestClient {
     @Override
     public Long countRequestsByEventAndStatus(Long eId, RequestStatus status) throws FeignException {
         return 0L;

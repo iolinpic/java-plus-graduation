@@ -1,9 +1,9 @@
 package ru.practicum.events.service;
 
+import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.dto.EntityParam;
 import ru.practicum.events.dto.EventAdminUpdateDto;
 import ru.practicum.events.dto.EventCreateDto;
-import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.dto.EventUpdateDto;
 import ru.practicum.events.dto.SearchEventsParam;

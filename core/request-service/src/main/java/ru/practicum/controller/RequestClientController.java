@@ -19,7 +19,7 @@ public class RequestClientController implements RequestClientOperations {
 
     @Override
     public Long countRequestsByEventAndStatus(Long eId, RequestStatus status) {
-        return requestService.countRequestsByEventAndStatus(eId,status);
+        return requestService.countRequestsByEventAndStatus(eId, status);
     }
 
     @Override

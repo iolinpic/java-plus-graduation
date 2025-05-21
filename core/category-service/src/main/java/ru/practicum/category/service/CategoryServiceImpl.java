@@ -5,11 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.mapper.CategoryMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
+import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.exceptions.NotEmptyException;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.feign.EventClientOperations;
@@ -73,7 +73,7 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findAllById(ids).stream().map(mapper::toDto).toList();
     }
 
-    private Boolean categoryHasEvents(Long catId){
+    private Boolean categoryHasEvents(Long catId) {
         try {
             return eventClient.categoryHasEvents(catId);
         } catch (FeignException e) {

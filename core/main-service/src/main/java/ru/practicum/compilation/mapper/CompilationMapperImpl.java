@@ -50,9 +50,8 @@ public final class CompilationMapperImpl {
         Map<Long, UserDto> users = loadUsers(ids);
         Map<Long, CategoryDto> categories = loadCategories(categoryIds);
         return events.stream().map(e ->
-                eventMapper.toEventShortDto(e, users.get(e.getInitiatorId()),categories.get(e.getCategoryId()))).toList();
+                eventMapper.toEventShortDto(e, users.get(e.getInitiatorId()), categories.get(e.getCategoryId()))).toList();
     }
-
 
 
     private Map<Long, CategoryDto> loadCategories(List<Long> ids) {

@@ -2,9 +2,9 @@ package ru.practicum.comment.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.comment.dto.NewCommentDto;
 import ru.practicum.comment.model.Comment;
+import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.events.model.Event;
 
 @Mapper(componentModel = "spring")

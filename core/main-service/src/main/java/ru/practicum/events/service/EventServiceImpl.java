@@ -109,7 +109,7 @@ public class EventServiceImpl implements EventService {
         }
         event = eventRepository.save(event);
         CategoryDto categoryDto = findCategoryById(event.getCategoryId());
-        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
+        return addAdvancedData(eventMapper.toDto(event, user, categoryDto));
     }
 
     @Override
@@ -156,7 +156,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id %s not found", eventId)));
         UserDto user = findUserById(event.getInitiatorId());
         CategoryDto categoryDto = findCategoryById(event.getCategoryId());
-        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
+        return addAdvancedData(eventMapper.toDto(event, user, categoryDto));
     }
 
     @Override
@@ -166,25 +166,25 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto findByIdAndInitiatorId(Long eventId, Long userId) {
-        Event event= eventRepository.findByIdAndInitiatorId(eventId,userId)
-                .orElseThrow(()->new NotFoundException("event not found"));
+        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
+                .orElseThrow(() -> new NotFoundException("event not found"));
         UserDto user = userClient.getUserById(event.getInitiatorId());
         CategoryDto category = findCategoryById(event.getCategoryId());
-        return addAdvancedData(eventMapper.toDto(event,user,category));
+        return addAdvancedData(eventMapper.toDto(event, user, category));
     }
 
     @Override
     public Boolean existByIdAndInitiatorId(Long eventId, Long userId) {
-        return eventRepository.findByIdAndInitiatorId(eventId,userId).isPresent();
+        return eventRepository.findByIdAndInitiatorId(eventId, userId).isPresent();
     }
 
     @Override
     public EventDto findById(Long id) {
-        Event event= eventRepository.findById(id)
-                .orElseThrow(()->new NotFoundException("event not found"));
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("event not found"));
         UserDto user = userClient.getUserById(event.getInitiatorId());
         CategoryDto category = findCategoryById(event.getCategoryId());
-        return addAdvancedData(eventMapper.toDto(event,user,category));
+        return addAdvancedData(eventMapper.toDto(event, user, category));
     }
 
     @Override
@@ -251,7 +251,7 @@ public class EventServiceImpl implements EventService {
         event.setState(EventState.PENDING);
         event = eventRepository.save(event);
         CategoryDto categoryDto = findCategoryById(event.getCategoryId());
-        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
+        return addAdvancedData(eventMapper.toDto(event, user, categoryDto));
     }
 
     @Override
@@ -260,7 +260,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id %s not found", eventId)));
         UserDto user = findUserById(event.getInitiatorId());
         CategoryDto categoryDto = findCategoryById(event.getCategoryId());
-        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
+        return addAdvancedData(eventMapper.toDto(event, user, categoryDto));
     }
 
     @Override
@@ -290,7 +290,7 @@ public class EventServiceImpl implements EventService {
         event = eventRepository.save(event);
         UserDto user = findUserById(event.getInitiatorId());
         CategoryDto categoryDto = findCategoryById(event.getCategoryId());
-        return addAdvancedData(eventMapper.toDto(event, user,categoryDto));
+        return addAdvancedData(eventMapper.toDto(event, user, categoryDto));
     }
 
     private EventDto addAdvancedData(EventDto eventDto) {
@@ -416,7 +416,7 @@ public class EventServiceImpl implements EventService {
         List<Long> ids = events.stream().map(Event::getInitiatorId).toList();
         List<Long> categoryIds = events.stream().map(Event::getCategoryId).toList();
         Map<Long, UserDto> users = loadUsers(ids);
-        Map<Long,CategoryDto> categories = loadCategories(categoryIds);
+        Map<Long, CategoryDto> categories = loadCategories(categoryIds);
         return events.stream().map(e ->
                 eventMapper.toDto(e, users.get(e.getInitiatorId()),
                         categories.get(e.getCategoryId()))).toList();
@@ -426,9 +426,9 @@ public class EventServiceImpl implements EventService {
         List<Long> ids = events.stream().map(Event::getInitiatorId).toList();
         List<Long> categoryIds = events.stream().map(Event::getCategoryId).toList();
         Map<Long, UserDto> users = loadUsers(ids);
-        Map<Long,CategoryDto> categories = loadCategories(categoryIds);
+        Map<Long, CategoryDto> categories = loadCategories(categoryIds);
         return events.stream().map(e ->
-                eventMapper.toEventShortDto(e, users.get(e.getInitiatorId()),categories.get(e.getCategoryId()))).toList();
+                eventMapper.toEventShortDto(e, users.get(e.getInitiatorId()), categories.get(e.getCategoryId()))).toList();
     }
 
     private CategoryDto findCategoryById(Long categoryId) {

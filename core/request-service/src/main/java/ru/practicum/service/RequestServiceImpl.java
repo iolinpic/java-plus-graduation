@@ -197,7 +197,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public Long countRequestsByEventAndStatus(Long eId, RequestStatus status) {
-        return requestRepository.countRequestsByEventAndStatus(eId,status);
+        return requestRepository.countRequestsByEventAndStatus(eId, status);
     }
 
     @Override
@@ -208,7 +208,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public Boolean findByRequesterIdAndEventIdAndStatus(Long userId, Long eventId, RequestStatus status) {
-        return requestRepository.findByRequesterIdAndEventIdAndStatus(userId,eventId,status).isEmpty();
+        return requestRepository.findByRequesterIdAndEventIdAndStatus(userId, eventId, status).isEmpty();
     }
 
     private void findUserById(Long userId) {

@@ -7,7 +7,7 @@ import ru.practicum.dto.category.CategoryDto;
 import java.util.List;
 
 @Component
-public class CategoryClientFallback implements CategoryClient{
+public class CategoryClientFallback implements CategoryClient {
 
     @Override
     public CategoryDto findById(Long id) throws FeignException {
@@ -19,7 +19,7 @@ public class CategoryClientFallback implements CategoryClient{
         return ids.stream().map(this::createCategoryDtoWithId).toList();
     }
 
-    private CategoryDto createCategoryDtoWithId(Long id){
+    private CategoryDto createCategoryDtoWithId(Long id) {
         CategoryDto cat = new CategoryDto();
         cat.setId(id);
         return cat;

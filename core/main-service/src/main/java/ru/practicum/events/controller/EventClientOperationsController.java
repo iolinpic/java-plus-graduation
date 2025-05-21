@@ -23,12 +23,12 @@ public class EventClientOperationsController implements EventClientOperations {
 
     @Override
     public EventDto findByIdAndInitiatorId(Long eventId, Long userId) throws FeignException {
-        return eventService.findByIdAndInitiatorId(eventId,userId);
+        return eventService.findByIdAndInitiatorId(eventId, userId);
     }
 
     @Override
     public Boolean existByIdAndInitiatorId(Long eventId, Long userId) throws FeignException {
-        return eventService.existByIdAndInitiatorId(eventId,userId);
+        return eventService.existByIdAndInitiatorId(eventId, userId);
     }
 
     @Override

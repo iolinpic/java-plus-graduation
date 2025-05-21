@@ -10,6 +10,9 @@ import java.util.List;
 public interface UserClientOperations {
     @GetMapping
     UserDto getUserById(@RequestParam Long id) throws FeignException;
+
     @GetMapping("/list")
-    List<UserDto> getUsersWithIds(@RequestParam List<Long> ids) throws FeignException;;
+    List<UserDto> getUsersWithIds(@RequestParam List<Long> ids) throws FeignException;
+
+    ;
 }

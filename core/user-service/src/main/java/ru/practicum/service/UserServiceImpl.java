@@ -10,7 +10,6 @@ import ru.practicum.mapper.UserMapper;
 import ru.practicum.model.User;
 import ru.practicum.repository.UserRepository;
 
-
 import java.util.List;
 
 @RequiredArgsConstructor

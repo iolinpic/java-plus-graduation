@@ -2,8 +2,8 @@ package ru.practicum.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import ru.practicum.model.Request;
 import ru.practicum.dto.request.RequestStatus;
+import ru.practicum.model.Request;
 
 import java.util.List;
 import java.util.Optional;
