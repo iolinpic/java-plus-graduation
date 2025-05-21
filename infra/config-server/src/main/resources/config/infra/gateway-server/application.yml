@@ -25,8 +25,8 @@ spring:
           predicates:
             - Path=/categories/**, /admin/categories/**
 
-        - id: main_service
-          uri: lb://main-service
+        - id: event_service
+          uri: lb://event-service
           predicates:
             - Path=/**
 #          filters:

@@ -38,3 +38,6 @@
 - ендпоинты описаны в [интерфейсах общего модуля](/core/common/src/main/java/ru/practicum/feign) 
 - для передачи данных используются общие [dto объекты](/core/common/src/main/java/ru/practicum/dto)
 - для обработки ошибок используется общий [RestAdvice и общий список исключений](/core/common/src/main/java/ru/practicum/exceptions)
+
+## Конфигурация
+Все конфигурирование выполняется через  spring-cloud-config и файлы конфигурации организованы согласно структуре maven проекта и расположены в [ресурсах конфиг сервера](/infra/config-server/src/main/resources)
