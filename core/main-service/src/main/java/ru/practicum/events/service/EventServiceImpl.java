@@ -8,12 +8,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.client.StatClient;
-import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.comment.enums.CommentStatus;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.dto.ViewStats;
 import ru.practicum.dto.category.CategoryDto;
+import ru.practicum.dto.comment.CommentDto;
+import ru.practicum.dto.event.EventDto;
+import ru.practicum.dto.event.EventState;
+import ru.practicum.dto.event.LocationDto;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.request.RequestStatus;
 import ru.practicum.dto.user.UserDto;
@@ -21,26 +24,23 @@ import ru.practicum.events.dto.AdminUpdateStateAction;
 import ru.practicum.events.dto.EntityParam;
 import ru.practicum.events.dto.EventAdminUpdateDto;
 import ru.practicum.events.dto.EventCreateDto;
-import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.dto.EventUpdateDto;
-import ru.practicum.dto.event.LocationDto;
 import ru.practicum.events.dto.SearchEventsParam;
 import ru.practicum.events.dto.UpdateStateAction;
+import ru.practicum.events.feign.CategoryClient;
+import ru.practicum.events.feign.RequestClient;
+import ru.practicum.events.feign.UserClient;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.mapper.LocationMapper;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.EventSort;
-import ru.practicum.dto.event.EventState;
 import ru.practicum.events.model.Location;
 import ru.practicum.events.predicates.EventPredicates;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.events.repository.LocationRepository;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.exceptions.OperationForbiddenException;
-import ru.practicum.feign.category.CategoryClient;
-import ru.practicum.feign.request.RequestClient;
-import ru.practicum.feign.users.UsersClient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class EventServiceImpl implements EventService {
     private final StatClient statClient;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-    private final UsersClient usersClient;
+    private final UserClient userClient;
     private final CategoryClient categoryClient;
     private final RequestClient requestClient;
 
@@ -168,7 +168,7 @@ public class EventServiceImpl implements EventService {
     public EventDto findByIdAndInitiatorId(Long eventId, Long userId) {
         Event event= eventRepository.findByIdAndInitiatorId(eventId,userId)
                 .orElseThrow(()->new NotFoundException("event not found"));
-        UserDto user = usersClient.getUserById(event.getInitiatorId());
+        UserDto user = userClient.getUserById(event.getInitiatorId());
         CategoryDto category = findCategoryById(event.getCategoryId());
         return addAdvancedData(eventMapper.toDto(event,user,category));
     }
@@ -182,7 +182,7 @@ public class EventServiceImpl implements EventService {
     public EventDto findById(Long id) {
         Event event= eventRepository.findById(id)
                 .orElseThrow(()->new NotFoundException("event not found"));
-        UserDto user = usersClient.getUserById(event.getInitiatorId());
+        UserDto user = userClient.getUserById(event.getInitiatorId());
         CategoryDto category = findCategoryById(event.getCategoryId());
         return addAdvancedData(eventMapper.toDto(event,user,category));
     }
@@ -398,7 +398,7 @@ public class EventServiceImpl implements EventService {
 
     private UserDto findUserById(Long userId) {
         try {
-            return usersClient.getUserById(userId);
+            return userClient.getUserById(userId);
         } catch (FeignException ex) {
             throw new NotFoundException(String.format("User with id %s not found", userId));
         }
@@ -406,7 +406,7 @@ public class EventServiceImpl implements EventService {
 
     private Map<Long, UserDto> loadUsers(List<Long> ids) {
         try {
-            return usersClient.getUsersWithIds(ids).stream().collect(Collectors.toMap(UserDto::getId, user -> user));
+            return userClient.getUsersWithIds(ids).stream().collect(Collectors.toMap(UserDto::getId, user -> user));
         } catch (FeignException e) {
             throw new NotFoundException("Some users load error");
         }
@@ -444,7 +444,7 @@ public class EventServiceImpl implements EventService {
             return categoryClient.findByIds(ids).stream()
                     .collect(Collectors.toMap(CategoryDto::getId, cat -> cat));
         } catch (FeignException e) {
-            throw new NotFoundException("Some users load error");
+            throw new NotFoundException("Some categories load error");
         }
     }
 }

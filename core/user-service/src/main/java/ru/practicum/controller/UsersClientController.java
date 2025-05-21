@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.user.UserDto;
-import ru.practicum.feign.users.UsersClient;
+import ru.practicum.feign.UserClientOperations;
 import ru.practicum.service.UserService;
 
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/user")
-public class UsersClientController implements UsersClient {
+public class UsersClientController implements UserClientOperations {
     private final UserService userService;
 
     @Override

@@ -1,4 +1,4 @@
-package ru.practicum.feign.request;
+package ru.practicum.feign;
 
 import feign.FeignException;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -9,8 +9,7 @@ import ru.practicum.dto.request.RequestStatus;
 
 import java.util.List;
 
-@FeignClient(name = "request-service", path = "/api/v1/request")
-public interface RequestClient {
+public interface RequestClientOperations {
 
     @GetMapping("/count")
     Long countRequestsByEventAndStatus(@RequestParam Long eId, @RequestParam RequestStatus status) throws FeignException;

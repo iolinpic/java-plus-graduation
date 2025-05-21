@@ -1,6 +1,12 @@
 server:
   port: 0
 spring:
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+        alphanumeric-ids:
+          enabled: true
   jpa:
     hibernate:
       ddl-auto: none
@@ -16,3 +22,9 @@ spring:
     driver-class-name: "org.postgresql.Driver"
     username: "explore"
     password: "secret"
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 50
+      failureRateThreshold: 50

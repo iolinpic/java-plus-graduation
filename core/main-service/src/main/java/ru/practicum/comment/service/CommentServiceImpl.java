@@ -5,22 +5,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.comment.dto.AdminUpdateCommentStatusDto;
-import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.comment.dto.NewCommentDto;
 import ru.practicum.comment.enums.AdminUpdateCommentStatusAction;
 import ru.practicum.comment.enums.CommentStatus;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.repository.CommentRepository;
+import ru.practicum.dto.comment.CommentDto;
+import ru.practicum.dto.event.EventState;
 import ru.practicum.dto.request.RequestStatus;
 import ru.practicum.dto.user.UserDto;
+import ru.practicum.events.feign.RequestClient;
+import ru.practicum.events.feign.UserClient;
 import ru.practicum.events.model.Event;
-import ru.practicum.dto.event.EventState;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.exceptions.OperationForbiddenException;
-import ru.practicum.feign.request.RequestClient;
-import ru.practicum.feign.users.UsersClient;
 
 import java.util.List;
 
@@ -32,7 +32,7 @@ public class CommentServiceImpl implements CommentService {
     private final EventRepository eventRepository;
     private final CommentMapper commentMapper;
     private final RequestClient requestClient;
-    private final UsersClient usersClient;
+    private final UserClient usersClient;
 
     @Transactional
     @Override

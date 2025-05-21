@@ -17,8 +17,8 @@ import ru.practicum.exceptions.OperationUnnecessaryException;
 import ru.practicum.exceptions.ParticipantLimitException;
 import ru.practicum.exceptions.RepeatableUserRequestException;
 import ru.practicum.exceptions.ValidationException;
-import ru.practicum.feign.event.EventClient;
-import ru.practicum.feign.users.UsersClient;
+import ru.practicum.feign.EventClient;
+import ru.practicum.feign.UserClient;
 import ru.practicum.mapper.RequestMapper;
 import ru.practicum.model.Request;
 import ru.practicum.repository.RequestRepository;
@@ -32,7 +32,7 @@ import java.util.List;
 public class RequestServiceImpl implements RequestService {
 
     private final RequestRepository requestRepository;
-    private final UsersClient usersClient;
+    private final UserClient usersClient;
     private final RequestMapper requestMapper;
     private final EventClient eventClient;
 

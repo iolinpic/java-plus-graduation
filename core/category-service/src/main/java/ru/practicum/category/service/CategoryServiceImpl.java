@@ -12,7 +12,7 @@ import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.exceptions.NotEmptyException;
 import ru.practicum.exceptions.NotFoundException;
-import ru.practicum.feign.event.EventClient;
+import ru.practicum.feign.EventClientOperations;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper mapper;
-    private final EventClient eventClient;
+    private final EventClientOperations eventClient;
 
     @Override
     @Transactional

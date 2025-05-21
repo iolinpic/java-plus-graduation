@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.service.EventService;
-import ru.practicum.feign.event.EventClient;
+import ru.practicum.feign.EventClientOperations;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/event")
-public class EventClientController implements EventClient {
+public class EventClientOperationsController implements EventClientOperations {
     private final EventService eventService;
 
     @Override

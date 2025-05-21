@@ -8,11 +8,11 @@ import ru.practicum.compilation.model.Compilation;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.events.dto.EventShortDto;
+import ru.practicum.events.feign.CategoryClient;
+import ru.practicum.events.feign.UserClient;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.model.Event;
 import ru.practicum.exceptions.NotFoundException;
-import ru.practicum.feign.category.CategoryClient;
-import ru.practicum.feign.users.UsersClient;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Component
 public final class CompilationMapperImpl {
     private final EventMapper eventMapper;
-    private final UsersClient usersClient;
+    private final UserClient usersClient;
     private final CategoryClient categoryClient;
 
     public CompilationDto toDto(Compilation compilation) {
@@ -60,7 +60,7 @@ public final class CompilationMapperImpl {
             return categoryClient.findByIds(ids).stream()
                     .collect(Collectors.toMap(CategoryDto::getId, cat -> cat));
         } catch (FeignException e) {
-            throw new NotFoundException("Some users load error");
+            throw new NotFoundException("Some categories load error");
         }
     }
 

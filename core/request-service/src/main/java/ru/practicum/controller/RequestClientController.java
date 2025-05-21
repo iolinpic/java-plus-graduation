@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.request.RequestStatus;
-import ru.practicum.feign.request.RequestClient;
+import ru.practicum.feign.RequestClientOperations;
 import ru.practicum.service.RequestService;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/request")
-public class RequestClientController implements RequestClient {
+public class RequestClientController implements RequestClientOperations {
     private final RequestService requestService;
 
     @Override

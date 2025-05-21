@@ -1,4 +1,4 @@
-package ru.practicum.feign.event;
+package ru.practicum.feign;
 
 import feign.FeignException;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -9,8 +9,8 @@ import ru.practicum.dto.event.EventDto;
 
 import java.util.List;
 
-@FeignClient(name="main-service",path = "/api/v1/event")
-public interface EventClient {
+
+public interface EventClientOperations {
     @GetMapping("/category")
     Boolean categoryHasEvents(@RequestParam Long id) throws FeignException;
 
