@@ -1,10 +1,9 @@
-package ru.practicum.events.dto;
+package ru.practicum.dto.event;
 
 import lombok.Data;
-import ru.practicum.comment.dto.CommentDto;
 import ru.practicum.dto.category.CategoryDto;
+import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.user.UserDto;
-import ru.practicum.events.model.EventState;
 
 import java.util.List;
 

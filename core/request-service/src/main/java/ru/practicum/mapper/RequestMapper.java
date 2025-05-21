@@ -1,8 +1,8 @@
-package ru.practicum.request.mapper;
+package ru.practicum.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.practicum.request.dto.ParticipationRequestDto;
-import ru.practicum.request.model.Request;
+import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.model.Request;
 
 import java.time.format.DateTimeFormatter;
 
@@ -14,7 +14,7 @@ public class RequestMapper {
     public ParticipationRequestDto requestToParticipationRequestDto(Request request) {
         ParticipationRequestDto requestDto = new ParticipationRequestDto();
         requestDto.setId(request.getId());
-        requestDto.setEvent(request.getEvent().getId());
+        requestDto.setEvent(request.getEventId());
         requestDto.setRequester(request.getRequesterId());
         requestDto.setCreated(dateTimeFormatter.format(request.getCreatedOn()));
         requestDto.setStatus(request.getStatus().name());

@@ -1,9 +1,10 @@
-package ru.practicum.request.service;
+package ru.practicum.service;
 
 import jakarta.servlet.http.HttpServletRequest;
-import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.request.dto.EventRequestStatusUpdateResult;
-import ru.practicum.request.dto.ParticipationRequestDto;
+import ru.practicum.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.dto.EventRequestStatusUpdateResult;
+import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.dto.request.RequestStatus;
 
 import java.util.List;
 
@@ -21,4 +22,9 @@ public interface RequestService {
                                                        EventRequestStatusUpdateRequest eventStatusUpdate,
                                                        HttpServletRequest request);
 
+    Long countRequestsByEventAndStatus(Long eId, RequestStatus status);
+
+    List<ParticipationRequestDto> findAllByEventIdInAndStatus(List<Long> ids, RequestStatus status);
+
+    Boolean findByRequesterIdAndEventIdAndStatus(Long userId, Long eventId, RequestStatus status);
 }

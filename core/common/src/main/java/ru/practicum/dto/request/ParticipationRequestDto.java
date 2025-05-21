@@ -1,12 +1,10 @@
-package ru.practicum.request.dto;
+package ru.practicum.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class ParticipationRequestDto {
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     private Long event;

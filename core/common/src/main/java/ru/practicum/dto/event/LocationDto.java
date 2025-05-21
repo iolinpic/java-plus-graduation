@@ -1,4 +1,4 @@
-package ru.practicum.events.dto;
+package ru.practicum.dto.event;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

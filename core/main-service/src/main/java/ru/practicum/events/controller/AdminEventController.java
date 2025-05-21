@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.events.dto.EventAdminUpdateDto;
-import ru.practicum.events.dto.EventDto;
+import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.dto.SearchEventsParam;
-import ru.practicum.events.model.EventState;
+import ru.practicum.dto.event.EventState;
 import ru.practicum.events.service.EventService;
 
 import java.time.LocalDateTime;

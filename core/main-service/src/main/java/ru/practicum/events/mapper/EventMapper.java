@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.events.dto.EventCreateDto;
-import ru.practicum.events.dto.EventDto;
+import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.model.Event;
 

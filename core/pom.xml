@@ -16,6 +16,7 @@
         <module>user-service</module>
         <module>common</module>
         <module>category-service</module>
+        <module>request-service</module>
     </modules>
 
 </project>

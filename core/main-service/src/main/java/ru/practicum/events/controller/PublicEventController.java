@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.client.StatClient;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.events.dto.EntityParam;
-import ru.practicum.events.dto.EventDto;
+import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.model.EventSort;
 import ru.practicum.events.service.EventService;

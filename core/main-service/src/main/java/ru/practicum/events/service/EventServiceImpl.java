@@ -8,28 +8,30 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.client.StatClient;
-import ru.practicum.comment.dto.CommentDto;
+import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.comment.enums.CommentStatus;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.dto.ViewStats;
 import ru.practicum.dto.category.CategoryDto;
+import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.dto.request.RequestStatus;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.events.dto.AdminUpdateStateAction;
 import ru.practicum.events.dto.EntityParam;
 import ru.practicum.events.dto.EventAdminUpdateDto;
 import ru.practicum.events.dto.EventCreateDto;
-import ru.practicum.events.dto.EventDto;
+import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.dto.EventUpdateDto;
-import ru.practicum.events.dto.LocationDto;
+import ru.practicum.dto.event.LocationDto;
 import ru.practicum.events.dto.SearchEventsParam;
 import ru.practicum.events.dto.UpdateStateAction;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.mapper.LocationMapper;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.EventSort;
-import ru.practicum.events.model.EventState;
+import ru.practicum.dto.event.EventState;
 import ru.practicum.events.model.Location;
 import ru.practicum.events.predicates.EventPredicates;
 import ru.practicum.events.repository.EventRepository;
@@ -37,10 +39,8 @@ import ru.practicum.events.repository.LocationRepository;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.exceptions.OperationForbiddenException;
 import ru.practicum.feign.category.CategoryClient;
+import ru.practicum.feign.request.RequestClient;
 import ru.practicum.feign.users.UsersClient;
-import ru.practicum.request.model.Request;
-import ru.practicum.request.model.RequestStatus;
-import ru.practicum.request.repository.RequestRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -56,7 +56,6 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final LocationRepository locationRepository;
-    private final RequestRepository requestRepository;
     private final EventMapper eventMapper;
     private final LocationMapper locationMapper;
     private final StatClient statClient;
@@ -64,6 +63,7 @@ public class EventServiceImpl implements EventService {
     private final CommentMapper commentMapper;
     private final UsersClient usersClient;
     private final CategoryClient categoryClient;
+    private final RequestClient requestClient;
 
     @Override
     public List<EventDto> adminEventsSearch(SearchEventsParam param) {
@@ -162,6 +162,35 @@ public class EventServiceImpl implements EventService {
     @Override
     public Boolean checkIfCategoryHasEvents(Long catId) {
         return !eventRepository.findAllByCategoryId(catId).isEmpty();
+    }
+
+    @Override
+    public EventDto findByIdAndInitiatorId(Long eventId, Long userId) {
+        Event event= eventRepository.findByIdAndInitiatorId(eventId,userId)
+                .orElseThrow(()->new NotFoundException("event not found"));
+        UserDto user = usersClient.getUserById(event.getInitiatorId());
+        CategoryDto category = findCategoryById(event.getCategoryId());
+        return addAdvancedData(eventMapper.toDto(event,user,category));
+    }
+
+    @Override
+    public Boolean existByIdAndInitiatorId(Long eventId, Long userId) {
+        return eventRepository.findByIdAndInitiatorId(eventId,userId).isPresent();
+    }
+
+    @Override
+    public EventDto findById(Long id) {
+        Event event= eventRepository.findById(id)
+                .orElseThrow(()->new NotFoundException("event not found"));
+        UserDto user = usersClient.getUserById(event.getInitiatorId());
+        CategoryDto category = findCategoryById(event.getCategoryId());
+        return addAdvancedData(eventMapper.toDto(event,user,category));
+    }
+
+    @Override
+    public List<EventDto> findAllByInitiatorId(Long userId) {
+        List<Event> events = eventRepository.findAllByInitiatorId(userId);
+        return addMinimalDataToList(mapAndAddUsersAndCategories(events));
     }
 
 
@@ -271,8 +300,8 @@ public class EventServiceImpl implements EventService {
                 .stream().map(ViewStats::getHits).reduce(0L, Long::sum);
         eventDto.setViews(views);
 
-        eventDto.setConfirmedRequests(requestRepository.countRequestsByEventAndStatus(eventRepository.findById(
-                eventDto.getId()).get(), RequestStatus.CONFIRMED));
+        eventDto.setConfirmedRequests(requestClient.countRequestsByEventAndStatus(
+                eventDto.getId(), RequestStatus.CONFIRMED));
 
         List<CommentDto> comments = commentRepository.findByEventIdAndStatus(eventDto.getId(), CommentStatus.PUBLISHED)
                 .stream()
@@ -284,18 +313,18 @@ public class EventServiceImpl implements EventService {
     }
 
     private boolean isEventAvailable(Event event) {
-        Long confirmedRequestsAmount = requestRepository.countRequestsByEventAndStatus(event, RequestStatus.CONFIRMED);
+        Long confirmedRequestsAmount = requestClient.countRequestsByEventAndStatus(event.getId(), RequestStatus.CONFIRMED);
         return event.getParticipantLimit() > confirmedRequestsAmount;
     }
 
     private HashMap<Long, Long> getEventConfirmedRequestsCount(List<Long> idsList) {
-        List<Request> requests = requestRepository.findAllByEventIdInAndStatus(idsList, RequestStatus.CONFIRMED);
+        List<ParticipationRequestDto> requests = requestClient.findAllByEventIdInAndStatus(idsList, RequestStatus.CONFIRMED);
         HashMap<Long, Long> confirmedRequestMap = new HashMap<>();
-        for (Request request : requests) {
-            if (confirmedRequestMap.containsKey(request.getEvent().getId())) {
-                confirmedRequestMap.put(request.getEvent().getId(), confirmedRequestMap.get(request.getEvent().getId()) + 1);
+        for (ParticipationRequestDto request : requests) {
+            if (confirmedRequestMap.containsKey(request.getEvent())) {
+                confirmedRequestMap.put(request.getEvent(), confirmedRequestMap.get(request.getEvent()) + 1);
             } else {
-                confirmedRequestMap.put(request.getEvent().getId(), 1L);
+                confirmedRequestMap.put(request.getEvent(), 1L);
             }
         }
         for (Long id : idsList) {

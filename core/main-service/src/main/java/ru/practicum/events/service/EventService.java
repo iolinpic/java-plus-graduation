@@ -3,7 +3,7 @@ package ru.practicum.events.service;
 import ru.practicum.events.dto.EntityParam;
 import ru.practicum.events.dto.EventAdminUpdateDto;
 import ru.practicum.events.dto.EventCreateDto;
-import ru.practicum.events.dto.EventDto;
+import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.dto.EventUpdateDto;
 import ru.practicum.events.dto.SearchEventsParam;
@@ -29,4 +29,12 @@ public interface EventService {
     EventDto getEvent(Long eventId);
 
     Boolean checkIfCategoryHasEvents(Long catId);
+
+    EventDto findByIdAndInitiatorId(Long eventId, Long userId);
+
+    Boolean existByIdAndInitiatorId(Long eventId, Long userId);
+
+    EventDto findById(Long id);
+
+    List<EventDto> findAllByInitiatorId(Long userId);
 }

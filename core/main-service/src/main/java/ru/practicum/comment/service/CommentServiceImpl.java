@@ -5,22 +5,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.comment.dto.AdminUpdateCommentStatusDto;
-import ru.practicum.comment.dto.CommentDto;
+import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.comment.dto.NewCommentDto;
 import ru.practicum.comment.enums.AdminUpdateCommentStatusAction;
 import ru.practicum.comment.enums.CommentStatus;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.repository.CommentRepository;
+import ru.practicum.dto.request.RequestStatus;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.events.model.Event;
-import ru.practicum.events.model.EventState;
+import ru.practicum.dto.event.EventState;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.exceptions.OperationForbiddenException;
+import ru.practicum.feign.request.RequestClient;
 import ru.practicum.feign.users.UsersClient;
-import ru.practicum.request.model.RequestStatus;
-import ru.practicum.request.repository.RequestRepository;
 
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final EventRepository eventRepository;
     private final CommentMapper commentMapper;
-    private final RequestRepository requestRepository;
+    private final RequestClient requestClient;
     private final UsersClient usersClient;
 
     @Transactional
@@ -46,12 +46,20 @@ public class CommentServiceImpl implements CommentService {
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new OperationForbiddenException("Мероприятие должно быть опубликовано");
         }
-        if (requestRepository.findByRequesterIdAndEventIdAndStatus(authorId, eventId, RequestStatus.CONFIRMED).isEmpty()) {
+        if (findByRequesterIdAndEventIdAndStatus(authorId, eventId, RequestStatus.CONFIRMED)) {
             throw new OperationForbiddenException("Комментарии может оставлять только подтвержденный участник мероприятия");
         }
         Comment comment = commentMapper.toComment(newCommentDto, event);
         commentRepository.save(comment);
         return commentMapper.toDto(comment);
+    }
+
+    private Boolean findByRequesterIdAndEventIdAndStatus(Long userId,Long eventId,RequestStatus status){
+        try{
+            return requestClient.findByRequesterIdAndEventIdAndStatus(userId, eventId, status);
+        } catch (FeignException e) {
+            throw new NotFoundException(e.getMessage());
+        }
     }
 
     @Transactional
