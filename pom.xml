@@ -30,6 +30,10 @@
         <spring-cloud-dependencies.version>2023.0.3</spring-cloud-dependencies.version>
         <!--       Plugins       -->
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <project.org.mapstruct.mapstruct.version>1.6.0</project.org.mapstruct.mapstruct.version>
+        <project.org.projectlombok.lombok-mapstruct-binding.version>0.2.0
+        </project.org.projectlombok.lombok-mapstruct-binding.version>
+        <project.querydsl>5.1.0</project.querydsl>
     </properties>
 
     <dependencyManagement>
@@ -40,6 +44,27 @@
                 <version>${spring-cloud-dependencies.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.querydsl</groupId>
+                <artifactId>querydsl-jpa</artifactId>
+                <classifier>jakarta</classifier>
+                <version>${project.querydsl}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${project.org.mapstruct.mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${project.org.mapstruct.mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-mapstruct-binding</artifactId>
+                <version>${project.org.projectlombok.lombok-mapstruct-binding.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
