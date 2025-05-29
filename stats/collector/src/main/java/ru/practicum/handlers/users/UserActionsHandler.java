@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import ru.practicum.config.KafkaProducerConfig;
 import ru.practicum.ewm.stats.avro.ActionTypeAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
+import ru.practicum.ewm.stats.grpc.user.ActionTypeProto;
 import ru.practicum.ewm.stats.grpc.user.UserActionProto;
 import ru.practicum.mappers.TimestampMapper;
 
@@ -28,7 +29,16 @@ public class UserActionsHandler {
                 .setUserId(actionProto.getUserId())
                 .setEventId(actionProto.getEventId())
                 .setTimestamp(TimestampMapper.mapToInstant(actionProto.getTimestamp()))
-                .setActionType(ActionTypeAvro.valueOf(actionProto.getActionType().name().substring(7))) //remove ACTION_
+                .setActionType(mapActionType(actionProto.getActionType()))
                 .build();
+    }
+
+    private ActionTypeAvro mapActionType(ActionTypeProto type) {
+        return switch (type) {
+            case ACTION_VIEW -> ActionTypeAvro.VIEW;
+            case ACTION_REGISTER -> ActionTypeAvro.REGISTER;
+            case ACTION_LIKE -> ActionTypeAvro.LIKE;
+            default -> throw new IllegalArgumentException("Unknown action type: " + type);
+        };
     }
 }

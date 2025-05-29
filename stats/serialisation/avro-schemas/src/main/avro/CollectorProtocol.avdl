@@ -8,8 +8,8 @@ protocol CollectorProtocol {
 	}
 
 	record UserActionAvro{
-		int userId;
-		int eventId;
+		long userId;
+		long eventId;
 		ActionTypeAvro actionType;
 		timestamp_ms timestamp;
 	}

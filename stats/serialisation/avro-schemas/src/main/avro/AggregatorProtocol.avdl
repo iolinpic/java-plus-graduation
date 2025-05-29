@@ -2,8 +2,8 @@
 protocol AggregatorProtocol {
 
 	record EventSimilarityAvro{
-		int eventA;
-		int eventB;
+		long eventA;
+		long eventB;
 		double score;
 		timestamp_ms timestamp;
 	}
