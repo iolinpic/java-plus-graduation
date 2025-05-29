@@ -18,7 +18,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>stat</module>
+        <module>stats</module>
         <module>infra</module>
         <module>core</module>
     </modules>

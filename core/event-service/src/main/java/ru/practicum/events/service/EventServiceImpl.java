@@ -7,11 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.client.StatClient;
+//import ru.practicum.client.StatClient;
 import ru.practicum.comment.enums.CommentStatus;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.repository.CommentRepository;
-import ru.practicum.dto.ViewStats;
+//import ru.practicum.dto.ViewStats;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.event.EventDto;
@@ -58,7 +58,7 @@ public class EventServiceImpl implements EventService {
     private final LocationRepository locationRepository;
     private final EventMapper eventMapper;
     private final LocationMapper locationMapper;
-    private final StatClient statClient;
+//    private final StatClient statClient;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final UserClient userClient;
@@ -296,9 +296,9 @@ public class EventServiceImpl implements EventService {
     private EventDto addAdvancedData(EventDto eventDto) {
         List<String> gettingUris = new ArrayList<>();
         gettingUris.add("/events/" + eventDto.getId());
-        Long views = statClient.getStats(LocalDateTime.now().minusYears(1), LocalDateTime.now(), gettingUris, true)
-                .stream().map(ViewStats::getHits).reduce(0L, Long::sum);
-        eventDto.setViews(views);
+//        Long views = statClient.getStats(LocalDateTime.now().minusYears(1), LocalDateTime.now(), gettingUris, true)
+//                .stream().map(ViewStats::getHits).reduce(0L, Long::sum);
+//        eventDto.setViews(views);
 
         eventDto.setConfirmedRequests(requestClient.countRequestsByEventAndStatus(
                 eventDto.getId(), RequestStatus.CONFIRMED));
@@ -352,11 +352,11 @@ public class EventServiceImpl implements EventService {
 
     private HashMap<Long, Long> getEventViews(List<Long> idsList) {
         List<String> uris = idsList.stream().map(id -> "/events/" + id).toList();
-        List<ViewStats> viewStats = statClient.getStats(LocalDateTime.now().minusYears(1), LocalDateTime.now(), uris, false);
+//        List<ViewStats> viewStats = statClient.getStats(LocalDateTime.now().minusYears(1), LocalDateTime.now(), uris, false);
         HashMap<Long, Long> viewMap = new HashMap<>();
-        for (Long id : idsList) {
-            viewMap.put(id, viewStats.stream().filter(v -> v.getUri().equals("/events/" + id)).map(ViewStats::getHits).findFirst().orElse(0L));
-        }
+//        for (Long id : idsList) {
+//            viewMap.put(id, viewStats.stream().filter(v -> v.getUri().equals("/events/" + id)).map(ViewStats::getHits).findFirst().orElse(0L));
+//        }
         return viewMap;
     }
 
