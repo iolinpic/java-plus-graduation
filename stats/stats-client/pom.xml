@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>stats-client</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
@@ -35,5 +36,13 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
