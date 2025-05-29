@@ -1,0 +1,17 @@
+aggregator:
+  producer-properties:
+    bootstrap.servers: localhost:9092
+    key.serializer: org.apache.kafka.common.serialization.VoidSerializer
+    value.serializer: ru.yandex.practicum.kafka.serializer.GeneralKafkaSerializer
+  snapshot-topic: telemetry.snapshots.v1
+
+  consumer-properties:
+    bootstrap.servers: localhost:9092
+    group.id: some.group.id
+    client.id: SomeConsumer
+    key.deserializer: org.apache.kafka.common.serialization.VoidDeserializer
+    value.deserializer: ru.yandex.practicum.kafka.serializer.SensorEventDeserializer
+    enable.auto.commit: false
+  sensor-topic:
+    - telemetry.sensors.v1
+  consume-attempt-timeout: 1000
