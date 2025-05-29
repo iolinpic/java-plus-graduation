@@ -8,12 +8,13 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-//import ru.practicum.client.StatClient;
-//import ru.practicum.dto.EndpointHitDto;
+import ru.practicum.client.CollectorClient;
 import ru.practicum.dto.event.EventDto;
 import ru.practicum.events.dto.EntityParam;
 import ru.practicum.events.dto.EventShortDto;
@@ -29,10 +30,9 @@ import java.util.List;
 public class PublicEventController {
 
     private static final String DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
-    private static final String MAIN_SERVICE = "ewm-main-service";
 
     private final EventService eventService;
-//    private final StatClient statClient;
+    private final CollectorClient collectorClient;
 
 
     /**
@@ -78,9 +78,7 @@ public class PublicEventController {
         params.setPaid(paid);
         params.setOnlyAvailable(onlyAvailable);
 
-        List<EventShortDto> result = eventService.getEvents(params);
-//        saveHit(request);
-        return result;
+        return eventService.getEvents(params);
     }
 
     /**
@@ -93,20 +91,22 @@ public class PublicEventController {
      */
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public EventDto getEvent(@PathVariable Long id, HttpServletRequest request) {
+    public EventDto getEvent(@RequestHeader("X-EWM-USER-ID") long userId, @PathVariable Long id, HttpServletRequest request) {
 
         EventDto result = eventService.getEvent(id);
-//        saveHit(request);
+        collectorClient.sendEventView(userId,id);
         return result;
     }
 
-//    private void saveHit(HttpServletRequest request) {
-//        EndpointHitDto endpointHitDto = new EndpointHitDto();
-//        endpointHitDto.setApp(MAIN_SERVICE);
-//        endpointHitDto.setUri(request.getRequestURI());
-//        endpointHitDto.setIp(request.getRemoteAddr());
-//        endpointHitDto.setTimestamp(LocalDateTime.now());
-//        statClient.saveHit(endpointHitDto);
-//    }
+    @GetMapping("/recommendations")
+    public List<EventDto> getRecommendations(@RequestHeader("X-EWM-USER-ID") long userId, @RequestParam Integer maxResults) {
+        return eventService.getRecommendations(userId, maxResults);
+    }
+
+    @PutMapping("/{eventId}/like")
+    public void likeEvent(@PathVariable Long eventId, @RequestHeader("X-EWM-USER-ID") long userId) {
+        eventService.likeEvent(eventId,userId);
+        collectorClient.sendEventLike(userId, eventId);
+    }
 
 }

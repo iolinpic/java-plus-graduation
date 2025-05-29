@@ -15,7 +15,7 @@ public class EventDto {
     private String description;
 
     private long confirmedRequests;
-    private long views;
+    private double rating;
 
     private boolean paid;
     private boolean requestModeration;
