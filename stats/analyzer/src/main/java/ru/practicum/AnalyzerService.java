@@ -11,12 +11,8 @@ public class AnalyzerService {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(AnalyzerService.class, args);
 
-        SimilarityConsumer similarityConsumer = context.getBean(SimilarityConsumer.class);
-        Runtime.getRuntime().addShutdownHook(new Thread(similarityConsumer::stop));
-        similarityConsumer.start();
-
-        UserActionConsumer userActionConsumer = context.getBean(UserActionConsumer.class);
-        Runtime.getRuntime().addShutdownHook(new Thread(userActionConsumer::stop));
-        userActionConsumer.start();
+        KafkaConsumerService kafkaConsumer = context.getBean(KafkaConsumerService.class);
+        Runtime.getRuntime().addShutdownHook(new Thread(kafkaConsumer::stop));
+        kafkaConsumer.start();
     }
 }
