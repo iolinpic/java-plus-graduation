@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package service.collector;
+package stats.service.collector;
 
 import "messages/UserActionProto.proto";
 import "google/protobuf/empty.proto";
