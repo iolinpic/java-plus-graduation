@@ -29,7 +29,6 @@ analyzer:
     enable.auto.commit: false
   user-topics:
     - stats.user-actions.v1
-  user-consume-attempt-timeout: 1000
 
   similarity-consumer-properties:
     bootstrap.servers: localhost:9092
@@ -40,4 +39,4 @@ analyzer:
     enable.auto.commit: false
   similarity-topics:
     - stats.events-similarity.v1
-  similarity-consume-attempt-timeout: 1000
+  consume-attempt-timeout: 1000
