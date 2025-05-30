@@ -29,6 +29,7 @@ public class AnalyserConfig {
     public KafkaConsumer<String, UserActionAvro> userConsumer() {
         return new KafkaConsumer<>(getUserConsumerProperties());
     }
+
     @Bean
     public KafkaConsumer<String, EventSimilarityAvro> similarityConsumer() {
         return new KafkaConsumer<>(getSimilarityConsumerProperties());

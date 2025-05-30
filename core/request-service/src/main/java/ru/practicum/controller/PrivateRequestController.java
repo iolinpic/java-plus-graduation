@@ -55,8 +55,8 @@ public class PrivateRequestController {
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto addParticipationRequest(@PathVariable Long userId,
                                                            @RequestParam Long eventId) {
-        ParticipationRequestDto result =  requestService.addParticipationRequest(userId, eventId);
-        collectorClient.sendEventRegistration(userId,eventId);
+        ParticipationRequestDto result = requestService.addParticipationRequest(userId, eventId);
+        collectorClient.sendEventRegistration(userId, eventId);
         return result;
     }
 

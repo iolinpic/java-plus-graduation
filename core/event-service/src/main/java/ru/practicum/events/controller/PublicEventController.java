@@ -94,7 +94,7 @@ public class PublicEventController {
     public EventDto getEvent(@RequestHeader("X-EWM-USER-ID") long userId, @PathVariable Long id, HttpServletRequest request) {
 
         EventDto result = eventService.getEvent(id);
-        collectorClient.sendEventView(userId,id);
+        collectorClient.sendEventView(userId, id);
         return result;
     }
 
@@ -105,7 +105,7 @@ public class PublicEventController {
 
     @PutMapping("/{eventId}/like")
     public void likeEvent(@PathVariable Long eventId, @RequestHeader("X-EWM-USER-ID") long userId) {
-        eventService.likeEvent(eventId,userId);
+        eventService.likeEvent(eventId, userId);
         collectorClient.sendEventLike(userId, eventId);
     }
 

@@ -195,9 +195,9 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void likeEvent(Long eventId, Long userId) {
-        try{
+        try {
             //проверяем что у юзера есть заявка
-            requestClient.findByRequesterIdAndEventIdAndStatus(userId,eventId,RequestStatus.CONFIRMED);
+            requestClient.findByRequesterIdAndEventIdAndStatus(userId, eventId, RequestStatus.CONFIRMED);
         } catch (FeignException e) {
             throw new ru.practicum.exceptions.ValidationException("Пользователь может лайкать только посещённые им мероприятия");
         }

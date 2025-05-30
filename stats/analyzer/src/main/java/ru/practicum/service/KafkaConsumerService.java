@@ -5,5 +5,6 @@ import ru.practicum.ewm.stats.avro.UserActionAvro;
 
 public interface KafkaConsumerService {
     void userActionReceived(UserActionAvro userActionAvro);
+
     void eventsSimilarityReceived(EventSimilarityAvro eventSimilarityAvro);
 }

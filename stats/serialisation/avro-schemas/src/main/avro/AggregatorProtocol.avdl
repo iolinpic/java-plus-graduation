@@ -1,7 +1,7 @@
 @namespace("ru.practicum.ewm.stats.avro")
 protocol AggregatorProtocol {
 
-	record EventSimilarityAvro{
+	record EventSimilarityAvro {
 		long eventA;
 		long eventB;
 		double score;

@@ -7,7 +7,7 @@ protocol CollectorProtocol {
 		LIKE
 	}
 
-	record UserActionAvro{
+	record UserActionAvro {
 		long userId;
 		long eventId;
 		ActionTypeAvro actionType;

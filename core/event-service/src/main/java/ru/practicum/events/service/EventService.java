@@ -40,5 +40,5 @@ public interface EventService {
 
     void likeEvent(Long eventId, Long userId);
 
-    List<EventDto> getRecommendations(Long userId,int maxResults);
+    List<EventDto> getRecommendations(Long userId, int maxResults);
 }
