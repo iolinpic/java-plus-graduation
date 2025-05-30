@@ -4,43 +4,40 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
-        format_sql: true
+        hibernate:
+          format_sql: true
   sql:
     init:
       mode: always
   datasource:
-    username: smart
-    password: secret
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/smart
+    url: jdbc:postgresql://localhost:15432/stats-db
+    driver-class-name: "org.postgresql.Driver"
+    username: "explore"
+    password: "secret"
 
 grpc:
-  client:
-    hub-router:
-      address: static://localhost:59090
-      enable-keep-alive: true
-      keep-alive-without-calls: true
-      negotiation-type: plaintext
+  server:
+    port: 0
 
 analyzer:
-  hub-consumer-properties:
+  user-consumer-properties:
     bootstrap.servers: localhost:9092
-    group.id: hub.analyzing
+    group.id: user.analyzing
     client.id: hubConsumer
     key.deserializer: org.apache.kafka.common.serialization.VoidDeserializer
-    value.deserializer: ru.yandex.practicum.kafka.serializer.HubEventDeserializer
+    value.deserializer: ru.practicum.ewm.stats.avro.UserActionDeserializer
     enable.auto.commit: false
-  hub-topics:
-    - telemetry.hub.v1
-  hub-consume-attempt-timeout: 1000
+  user-topics:
+    - stats.user-actions.v1
+  user-consume-attempt-timeout: 1000
 
-  snapshot-consumer-properties:
+  similarity-consumer-properties:
     bootstrap.servers: localhost:9092
-    group.id: snapshot.analyzing
+    group.id: similarity.analyzing
     client.id: snapshotConsumer
     key.deserializer: org.apache.kafka.common.serialization.VoidDeserializer
-    value.deserializer: ru.yandex.practicum.kafka.serializer.SensorSnapshotDeserializer
+    value.deserializer: ru.practicum.ewm.stats.avro.EventSimilarityDeserializer
     enable.auto.commit: false
-  snapshot-topics:
-    - telemetry.snapshots.v1
-  snapshot-consume-attempt-timeout: 1000
+  similarity-topics:
+    - stats.events-similarity.v1
+  similarity-consume-attempt-timeout: 1000
