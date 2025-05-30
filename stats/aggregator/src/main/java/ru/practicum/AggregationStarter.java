@@ -161,8 +161,8 @@ public class AggregationStarter {
 
     private void sendSimilarity(long eventA, long eventB, double similarity, Instant timestamp) {
         EventSimilarityAvro eventSimilarity = EventSimilarityAvro.newBuilder()
-                .setEventA(eventA)
-                .setEventB(eventB)
+                .setEventA(Math.min(eventA, eventB))
+                .setEventB(Math.max(eventA, eventB))
                 .setScore(similarity)
                 .setTimestamp(timestamp)
                 .build();
