@@ -11,4 +11,6 @@ public interface UserActionRepository extends JpaRepository<UserAction, Long> {
     boolean existsByUserIdAndEventId(Long userId, Long eventId);
 
     List<UserAction> findByEventId(Long eventId);
+
+    List<UserAction> findByUserIdAndEventId(Long userId, Long eventId);
 }

@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface EventSimilarityRepository extends JpaRepository<EventSimilarity, Long> {
     List<EventSimilarity> findByEventAOrEventB(long eventId, long eventId1);
+
+    List<EventSimilarity> findByEventAAndEventB(Long eventA, Long eventB);
 }

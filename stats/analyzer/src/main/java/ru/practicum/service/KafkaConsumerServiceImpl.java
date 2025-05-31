@@ -13,6 +13,7 @@ import ru.practicum.repository.UserActionRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +29,25 @@ public class KafkaConsumerServiceImpl implements KafkaConsumerService {
                 .actionType(UserActionType.valueOf(userActionAvro.getActionType().name()))
                 .timestamp(mapTimestamp(userActionAvro.getTimestamp()))
                 .build();
-        userActionRepository.save(userAction);
+        List<UserAction> actions = userActionRepository.findByUserIdAndEventId(userActionAvro.getUserId(), userActionAvro.getEventId());
+        if (!actions.isEmpty()) {
+            UserAction oldAction = actions.getFirst();
+            if (calcInteractionScore(oldAction.getActionType()) < calcInteractionScore(userAction.getActionType())) {
+                userActionRepository.delete(oldAction);
+                userActionRepository.save(userAction);
+            }
+        } else {
+            userActionRepository.save(userAction);
+        }
+
+    }
+
+    private double calcInteractionScore(UserActionType type) {
+        return switch (type) {
+            case VIEW -> 0.4;
+            case REGISTER -> 0.8;
+            case LIKE -> 1.0;
+        };
     }
 
     @Override
@@ -39,7 +58,16 @@ public class KafkaConsumerServiceImpl implements KafkaConsumerService {
                 .score(eventSimilarityAvro.getScore())
                 .timestamp(mapTimestamp(eventSimilarityAvro.getTimestamp()))
                 .build();
-        eventSimilarityRepository.save(eventSimilarity);
+        List<EventSimilarity> similarities = eventSimilarityRepository.findByEventAAndEventB(eventSimilarity.getEventA(), eventSimilarity.getEventB());
+        if (!similarities.isEmpty()) {
+            EventSimilarity oldSimilarity = similarities.getFirst();
+            oldSimilarity.setScore(eventSimilarity.getScore());
+            oldSimilarity.setTimestamp(eventSimilarity.getTimestamp());
+            eventSimilarityRepository.save(oldSimilarity);
+        }else {
+            eventSimilarityRepository.save(eventSimilarity);
+        }
+
     }
 
     private LocalDateTime mapTimestamp(Instant instant) {
