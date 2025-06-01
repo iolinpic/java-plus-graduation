@@ -7,11 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.client.StatClient;
+import ru.practicum.client.AnalyzerClient;
 import ru.practicum.comment.enums.CommentStatus;
 import ru.practicum.comment.mapper.CommentMapper;
 import ru.practicum.comment.repository.CommentRepository;
-import ru.practicum.dto.ViewStats;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.event.EventDto;
@@ -39,6 +38,7 @@ import ru.practicum.events.model.Location;
 import ru.practicum.events.predicates.EventPredicates;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.events.repository.LocationRepository;
+import ru.practicum.ewm.stats.grpc.predict.RecommendedEventProto;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.exceptions.OperationForbiddenException;
 
@@ -58,12 +58,12 @@ public class EventServiceImpl implements EventService {
     private final LocationRepository locationRepository;
     private final EventMapper eventMapper;
     private final LocationMapper locationMapper;
-    private final StatClient statClient;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final UserClient userClient;
     private final CategoryClient categoryClient;
     private final RequestClient requestClient;
+    private final AnalyzerClient analyzerClient;
 
     @Override
     public List<EventDto> adminEventsSearch(SearchEventsParam param) {
@@ -144,7 +144,7 @@ public class EventServiceImpl implements EventService {
                 case EVENT_DATE ->
                         eventDtos = eventDtos.stream().sorted(Comparator.comparing(EventShortDto::getEventDate)).toList();
                 case VIEWS ->
-                        eventDtos = eventDtos.stream().sorted(Comparator.comparing(EventShortDto::getViews)).toList();
+                        eventDtos = eventDtos.stream().sorted(Comparator.comparing(EventShortDto::getRating)).toList();
             }
         }
         return eventDtos;
@@ -191,6 +191,26 @@ public class EventServiceImpl implements EventService {
     public List<EventDto> findAllByInitiatorId(Long userId) {
         List<Event> events = eventRepository.findAllByInitiatorId(userId);
         return addMinimalDataToList(mapAndAddUsersAndCategories(events));
+    }
+
+    @Override
+    public void likeEvent(Long eventId, Long userId) {
+        try {
+            //проверяем что у юзера есть заявка
+            requestClient.findByRequesterIdAndEventIdAndStatus(userId, eventId, RequestStatus.CONFIRMED);
+        } catch (FeignException e) {
+            throw new ru.practicum.exceptions.ValidationException("Пользователь может лайкать только посещённые им мероприятия");
+        }
+
+    }
+
+    @Override
+    public List<EventDto> getRecommendations(Long userId, int maxResults) {
+        List<Long> ids = analyzerClient.getRecommendations(userId, maxResults).stream()
+                .sorted((a, b) -> (int) (a.getScore() - b.getScore()))
+                .map(RecommendedEventProto::getEventId).toList();
+        List<Event> events = eventRepository.findAllById(ids);
+        return addAdvancedDataToList(mapAndAddUsersAndCategories(events));
     }
 
 
@@ -294,11 +314,8 @@ public class EventServiceImpl implements EventService {
     }
 
     private EventDto addAdvancedData(EventDto eventDto) {
-        List<String> gettingUris = new ArrayList<>();
-        gettingUris.add("/events/" + eventDto.getId());
-        Long views = statClient.getStats(LocalDateTime.now().minusYears(1), LocalDateTime.now(), gettingUris, true)
-                .stream().map(ViewStats::getHits).reduce(0L, Long::sum);
-        eventDto.setViews(views);
+        Map<Long, Double> ratingMap = analyzerClient.getInteractionsCount(List.of(eventDto.getId()));
+        eventDto.setRating(ratingMap.get(eventDto.getId()));
 
         eventDto.setConfirmedRequests(requestClient.countRequestsByEventAndStatus(
                 eventDto.getId(), RequestStatus.CONFIRMED));
@@ -350,15 +367,6 @@ public class EventServiceImpl implements EventService {
         return commentsMap;
     }
 
-    private HashMap<Long, Long> getEventViews(List<Long> idsList) {
-        List<String> uris = idsList.stream().map(id -> "/events/" + id).toList();
-        List<ViewStats> viewStats = statClient.getStats(LocalDateTime.now().minusYears(1), LocalDateTime.now(), uris, false);
-        HashMap<Long, Long> viewMap = new HashMap<>();
-        for (Long id : idsList) {
-            viewMap.put(id, viewStats.stream().filter(v -> v.getUri().equals("/events/" + id)).map(ViewStats::getHits).findFirst().orElse(0L));
-        }
-        return viewMap;
-    }
 
     private List<EventDto> addMinimalDataToList(List<EventDto> eventDtoList) {
 
@@ -373,13 +381,13 @@ public class EventServiceImpl implements EventService {
     private List<EventDto> addAdvancedDataToList(List<EventDto> eventDtoList) {
 
         List<Long> idsList = eventDtoList.stream().map(EventDto::getId).toList();
-        HashMap<Long, Long> viewsMap = getEventViews(idsList);
+        Map<Long, Double> ratingMap = analyzerClient.getInteractionsCount(idsList);
         HashMap<Long, Long> confirmedMap = getEventConfirmedRequestsCount(idsList);
         HashMap<Long, List<CommentDto>> commentMap = getEventComments(idsList);
 
         return eventDtoList.stream()
                 .peek(dto -> dto.setComments(commentMap.get(dto.getId())))
-                .peek(dto -> dto.setViews(viewsMap.get(dto.getId())))
+                .peek(dto -> dto.setRating(ratingMap.get(dto.getId())))
                 .peek(dto -> dto.setConfirmedRequests(confirmedMap.get(dto.getId())))
                 .toList();
     }
@@ -387,11 +395,11 @@ public class EventServiceImpl implements EventService {
     private List<EventShortDto> addAdvancedDataToShortDtoList(List<EventShortDto> eventShortDtoList) {
 
         List<Long> idsList = eventShortDtoList.stream().map(EventShortDto::getId).toList();
-        HashMap<Long, Long> viewsMap = getEventViews(idsList);
+        Map<Long, Double> ratingMap = analyzerClient.getInteractionsCount(idsList);
         HashMap<Long, Long> confirmedMap = getEventConfirmedRequestsCount(idsList);
 
         return eventShortDtoList.stream()
-                .peek(dto -> dto.setViews(viewsMap.get(dto.getId())))
+                .peek(dto -> dto.setRating(ratingMap.get(dto.getId())))
                 .peek(dto -> dto.setConfirmedRequests(confirmedMap.get(dto.getId())))
                 .toList();
     }

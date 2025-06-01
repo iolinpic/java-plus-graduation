@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.client.CollectorClient;
 import ru.practicum.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.EventRequestStatusUpdateResult;
 import ru.practicum.dto.request.ParticipationRequestDto;
@@ -25,6 +26,7 @@ import java.util.List;
 public class PrivateRequestController {
 
     private final RequestService requestService;
+    private final CollectorClient collectorClient;
 
     /**
      * Получение информации о заявках текущего пользователя на участие в чужих событиях
@@ -53,7 +55,9 @@ public class PrivateRequestController {
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto addParticipationRequest(@PathVariable Long userId,
                                                            @RequestParam Long eventId) {
-        return requestService.addParticipationRequest(userId, eventId);
+        ParticipationRequestDto result = requestService.addParticipationRequest(userId, eventId);
+        collectorClient.sendEventRegistration(userId, eventId);
+        return result;
     }
 
     /**

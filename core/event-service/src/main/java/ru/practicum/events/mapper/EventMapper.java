@@ -18,7 +18,7 @@ public interface EventMapper {
     @Mapping(target = "eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "initiator", source = "user")
     @Mapping(target = "category", source = "categoryDto")
-    @Mapping(target = "views", ignore = true)
+    @Mapping(target = "rating", ignore = true)
     @Mapping(target = "confirmedRequests", ignore = true)
     EventDto toDto(Event event, UserDto user, CategoryDto categoryDto);
 
@@ -35,6 +35,6 @@ public interface EventMapper {
     @Mapping(target = "initiator", source = "user")
     @Mapping(target = "category", source = "category")
     @Mapping(target = "confirmedRequests", ignore = true)
-    @Mapping(target = "views", ignore = true)
+    @Mapping(target = "rating", ignore = true)
     EventShortDto toEventShortDto(Event event, UserDto user, CategoryDto category);
 }

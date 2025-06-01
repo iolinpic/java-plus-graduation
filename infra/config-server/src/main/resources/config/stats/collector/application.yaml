@@ -1,0 +1,10 @@
+grpc:
+  server:
+    port: 0
+
+collector:
+  producer-properties:
+    bootstrap.servers: localhost:9092
+    key.serializer: org.apache.kafka.common.serialization.VoidSerializer
+    value.serializer: ru.practicum.ewm.stats.avro.GeneralKafkaSerializer
+  topic: stats.user-actions.v1

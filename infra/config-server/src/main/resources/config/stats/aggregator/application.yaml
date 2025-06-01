@@ -1,0 +1,17 @@
+aggregator:
+  producer-properties:
+    bootstrap.servers: localhost:9092
+    key.serializer: org.apache.kafka.common.serialization.VoidSerializer
+    value.serializer: ru.practicum.ewm.stats.avro.GeneralKafkaSerializer
+  producer-topic: stats.events-similarity.v1
+
+  consumer-properties:
+    bootstrap.servers: localhost:9092
+    group.id: some.group.id
+    client.id: SomeConsumer
+    key.deserializer: org.apache.kafka.common.serialization.VoidDeserializer
+    value.deserializer: ru.practicum.ewm.stats.avro.UserActionDeserializer
+    enable.auto.commit: false
+  consumer-topic:
+    - stats.user-actions.v1
+  consume-attempt-timeout: 1000
